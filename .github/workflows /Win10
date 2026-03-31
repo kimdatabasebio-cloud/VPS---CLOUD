@@ -1,0 +1,32 @@
+name: Windows-11-Manual-Input
+
+on:
+  workflow_dispatch:
+    inputs:
+      auth_code:
+        description: 'วาง Code CRP ใหม่จาก Google ทุกครั้งที่รัน'
+        required: true
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - name: 1. Setup-CRD
+        run: |
+          $url = "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi"
+          Invoke-WebRequest $url -OutFile "crd.msi"
+          Start-Process msiexec.exe -Wait -ArgumentList "/i crd.msi /qn"
+          
+      - name: 2. Activate
+        run: |
+          # ใช้ช่อง Input เพื่อความสดใหม่ของ Token
+          ${{ github.event.inputs.auth_code }} --pin=123456
+          
+      - name: 3. Keep-Alive (10 Mins)
+        run: |
+          $i = 0
+          while ($i -lt 10) {
+            Write-Host "เครื่องยังทำงานอยู่... ($i/10 นาที)"
+            Start-Sleep -Seconds 60
+            $i++
+          }
